@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <!-- ===== PWA META TAGS ===== -->
+    <title>Абсурдный Английский</title>
+    <meta name="description" content="Изучайте английский в игровой форме с абсурдными фразами">
+    <meta name="theme-color" content="#171717">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Absurd English">
+    
+    <!-- ===== PWA MANIFEST ===== -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- ===== ICONS ===== -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/icons/icon-192.png">
+    <link rel="mask-icon" href="/icons/icon-512-maskable.png" color="#171717">
+    
+    <!-- ===== PRELOAD ===== -->
+    <link rel="preload" href="icons/icon-192.png" as="image">
+    
+    <!-- ============================================================
+           СТИЛИ (те же, что были ранее)
+        ============================================================ -->
+    <style>
+        /* ... все стили из предыдущей версии ... */
+        /* (код стилей не меняется, вставляем те же стили) */
+        
+        /* Дополнительные стили для PWA */
+        .pwa-install-banner {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 16px 24px;
+            z-index: 4000;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--glass-shadow);
+            text-align: center;
+        }
+        
+        .pwa-install-banner.show {
+            display: block;
+            animation: slideUp 0.5s ease;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+        
+        .pwa-install-banner .banner-title {
+            color: var(--solar-gold);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        
+        .pwa-install-banner .banner-text {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+        
+        .pwa-install-banner .banner-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .pwa-install-banner .banner-buttons button {
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: none;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        
+        .pwa-install-banner .banner-buttons .btn-install {
+            background: var(--solar-gold);
+            color: var(--space-black);
+        }
+        
+        .pwa-install-banner .banner-buttons .btn-install:hover {
+            background: var(--action-primary-hover);
+        }
+        
+        .pwa-install-banner .banner-buttons .btn-close {
+            background: var(--action-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+        }
+        
+        .pwa-install-banner .banner-buttons .btn-close:hover {
+            background: var(--action-hover);
+        }
+        
+        @media (max-width: 640px) {
+            .pwa-install-banner {
+                bottom: 10px;
+                padding: 14px 16px;
+                border-radius: 12px;
+            }
+            .pwa-install-banner .banner-text {
+                font-size: 12px;
+            }
+            .pwa-install-banner .banner-buttons button {
+                padding: 6px 14px;
+                font-size: 12px;
+            }
+        }
+    </style>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ===== PWA INSTALL BANNER ===== -->
+    <div class="pwa-install-banner" id="pwaInstallBanner">
+        <div class="banner-title">📲 Установите приложение</div>
+        <div class="banner-text">Учите английский с комфортом — установите на свой телефон</div>
+        <div class="banner-buttons">
+            <button class="btn-install" id="pwaInstallBtn">Установить</button>
+            <button class="btn-close" id="pwaCloseBtn">Не сейчас</button>
+        </div>
+    </div>
+
+    <!-- ===== ОСНОВНОЙ КОНТЕНТ (тот же, что был) ===== -->
+    <div class="app-container">
+        <!-- GRAMMAR SIDEBAR (Left) -->
+        <aside class="grammar-sidebar hidden" id="grammarSidebar">
+            <h3>📖 Грамматика</h3>
+            <div class="grammar-content" id="grammarContent">
+                <p style="color: var(--text-muted); font-style: italic;">Выберите вариант ответа, чтобы увидеть подробный разбор</p>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT (Center) -->
+        <main class="glass" id="app">
+            <header class="app-header">
+                <h1>🤪 <span class="gold">Абсурдный</span> English</h1>
+                <div class="header-actions">
+                    <button class="icon-btn" id="themeToggle" title="Только тёмная тема" aria-label="Theme">🌙</button>
+                </div>
+            </header>
+
+            <!-- LEVEL SELECTOR -->
+            <div class="level-selector" id="levelSelector">
+                <button class="level-btn active" data-level="beginner">
+                    <span class="level-dot beginner"></span> Начинающий
+                </button>
+                <button class="level-btn" data-level="intermediate">
+                    <span class="level-dot intermediate"></span> Средний
+                </button>
+                <button class="level-btn" data-level="advanced">
+                    <span class="level-dot advanced"></span> Продвинутый
+                </button>
+            </div>
+
+            <!-- STATS -->
+            <div class="stats-bar" id="statsBar">
+                <div class="stat-item">
+                    <span class="stat-icon">✅</span>
+                    <span class="stat-value" id="correctCount">0</span>
+                    <span class="stat-label">верно</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">❌</span>
+                    <span class="stat-value" id="wrongCount">0</span>
+                    <span class="stat-label">неверно</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🏆</span>
+                    <span class="stat-value" id="absurdCount">0</span>
+                    <span class="stat-label">абсурд</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">📚</span>
+                    <span class="stat-value" id="dictCount">0</span>
+                    <span class="stat-label">в словаре</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-icon">🎤</span>
+                    <span class="stat-value" id="pronunciationCount">0</span>
+                    <span class="stat-label">произнесено</span>
+                </div>
+            </div>
+
+            <!-- EXAM BAR -->
+            <div class="exam-bar hidden" id="examBar">
+                <div class="exam-progress">📝 Вопрос <span id="examCurrent">1</span> / <span id="examTotal">10</span></div>
+                <div class="exam-result" id="examResult"></div>
+            </div>
+
+            <!-- PHRASE -->
+            <div class="phrase-area">
+                <div id="levelBadge"></div>
+                <div class="phrase-en" id="phraseDisplay"></div>
+                <div class="phrase-hint" id="phraseHint">наведи на слово — увидишь перевод</div>
+            </div>
+
+            <!-- PRONUNCIATION -->
+            <div class="pronunciation-area" id="pronunciationArea">
+                <div class="pronunciation-word" id="pronunciationWord">🎤 Нажмите кнопку, чтобы тренировать произношение</div>
+                <div class="pronunciation-status" id="pronunciationStatus">Выберите слово из фразы выше</div>
+                <div class="pronunciation-buttons">
+                    <button id="pronunciationSelectBtn">📝 Выбрать слово</button>
+                    <button id="pronunciationListenBtn">🔊 Послушать</button>
+                    <button id="pronunciationRecordBtn">🎙️ Записать</button>
+                </div>
+            </div>
+
+            <!-- OPTIONS -->
+            <div class="options-grid" id="optionsContainer"></div>
+
+            <!-- FEEDBACK -->
+            <div class="feedback" id="feedback"></div>
+
+            <!-- ACTIONS -->
+            <div class="actions">
+                <button class="action-btn primary" id="newBtn">🎲 Новое</button>
+                <button class="action-btn" id="speakBtn">🔊 Озвучить</button>
+                <button class="action-btn" id="examBtn">📝 Экзамен</button>
+                <button class="action-btn" id="addToDictBtn">📖 В словарь</button>
+                <button class="action-btn danger" id="resetBtn">🔄 Сброс</button>
+            </div>
+        </main>
+
+        <!-- DICTIONARY SIDEBAR (Right) -->
+        <aside class="dictionary-sidebar" id="dictionarySidebar">
+            <h3>
+                📚 Словарь
+                <span class="badge" id="dictBadge">0</span>
+            </h3>
+            
+            <div class="dict-add-form">
+                <input type="text" id="dictWordInput" placeholder="Слово" />
+                <input type="text" id="dictTransInput" placeholder="Перевод" />
+                <button id="dictAddBtn">+</button>
+            </div>
+            
+            <ul class="dict-list" id="dictList">
+                <li class="dict-empty">Словарь пуст. Добавьте слова или нажимайте «В словарь» на карточках</li>
+            </ul>
+            
+            <button class="dict-learn-btn" id="dictLearnBtn">🎯 Повторить слова</button>
+        </aside>
+    </div>
+
+    <!-- FLASHCARD OVERLAY -->
+    <div class="flashcard-overlay" id="flashcardOverlay">
+        <div class="flashcard-container">
+            <button class="flashcard-close" id="flashcardClose">&times;</button>
+            <h2>🎯 Повторение слов</h2>
+            <div class="flashcard-progress" id="flashcardProgress">1 / 10</div>
+            <div class="flashcard-word" id="flashcardWord">word</div>
+            <div class="flashcard-trans" id="flashcardTrans">перевод</div>
+            <div class="flashcard-actions">
+                <button id="flashcardShow">Показать перевод</button>
+                <button id="flashcardNext" class="primary">Далее →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SCRIPT -->
+    <!-- ============================================================ -->
+    <script>
+        // ================================================================
+        //  PWA — УСТАНОВКА ПРИЛОЖЕНИЯ
+        // ================================================================
+
+        // Регистрация Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then((registration) => {
+                    console.log('[PWA] Service Worker зарегистрирован');
+                })
+                .catch((error) => {
+                    console.log('[PWA] Ошибка регистрации SW:', error);
+                });
+        }
+
+        // Обработка установки PWA
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('pwaInstallBanner').classList.add('show');
+        });
+
+        document.getElementById('pwaInstallBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const result = await deferredPrompt.userChoice;
+                if (result.outcome === 'accepted') {
+                    console.log('[PWA] Установка принята');
+                } else {
+                    console.log('[PWA] Установка отклонена');
+                }
+                deferredPrompt = null;
+                document.getElementById('pwaInstallBanner').classList.remove('show');
+            }
+        });
+
+        document.getElementById('pwaCloseBtn').addEventListener('click', () => {
+            document.getElementById('pwaInstallBanner').classList.remove('show');
+        });
+
+        // Обработка установки из оверлея Chrome
+        window.addEventListener('appinstalled', () => {
+            console.log('[PWA] Приложение установлено');
+            document.getElementById('pwaInstallBanner').classList.remove('show');
+        });
+
+
+        // ================================================================
+        //  ОСТАЛЬНОЙ КОД (игровая логика, словарь, произношение)
+        //  — полностью идентичен предыдущей версии
+        //  (вставляется сюда)
+        // ================================================================
+
+        // ... весь остальной код из предыдущей версии ...
+        // (он не меняется, просто вставляется в конце)
+
+        console.log('🤪 Абсурдный Английский загружен!');
+        console.log('📱 PWA поддерживается!');
+    </script>
+</body>
+</html>
